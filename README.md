@@ -3,7 +3,7 @@
 ## 项目名称
 **ttml_to_lys**
 
-开发者是**喵酱**，我将工具略作修改，写了一份配置文件，得以在 GitHub Issue 中使用
+开发者是**[喵酱](https://github.com/MiaowCham)**，我将工具略作修改，写了一份配置文件，得以在 GitHub Issue 中使用
 
 ## 项目简介
 ttml_to_lys 是一个工具，用于从 GitHub Issue 中获取歌词内容，将ttml格式歌词转换为lys，然后将处理后的结果以评论的形式附加到该 Issue 中。该工具通过 Python 实现，依赖于 GitHub API 和正则表达式技术，能够高效、智能地完成歌词内容的清理工作。
