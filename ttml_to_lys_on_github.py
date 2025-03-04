@@ -30,21 +30,7 @@ namespaces = {
     'itunes': 'http://music.apple.com/lyric-ttml-internal'
 }
 
-# def logger.info(message, level='INFO'):
-#     """记录日志到当天的日志文件"""
-#     log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log')
-#     os.makedirs(log_dir, exist_ok=True)
-#     log_file = os.path.join(log_dir, f"{date.today().isoformat()}.log")
-#     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#     log_line = f"[{timestamp}] [{level}] {message}\n"
 
-#     try:
-#         with open(log_file, 'a', encoding='utf-8') as f:
-#             f.write(log_line)
-#     except Exception as e:
-#         print(f"无法写入日志文件: {e}")
-
-# add logger to create dir and write log to specific file
 logger.add(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log',
                         f"{datetime.now().strftime('%Y-%m-%d')}.log"),
            level='DEBUG')
@@ -67,6 +53,23 @@ def preprocess_ttml(content):
     return content, modified
 
 
+def preprocess_ttml_1(content):
+    """预处理TTML内容，移除过多括号"""
+    # 匹配连续两个或以上的相同括号（( 或 )）
+    pattern = re.compile(r'([()])\1+')  # \1+ 表示重复一次或多次
+    modified = False
+
+    # 查找所有匹配项
+    matches = pattern.findall(content)
+    if matches:
+        modified = True
+        # 将连续重复的括号替换为单个
+        content = pattern.sub(r'\1', content)
+        logger.info(f"发现并移除了 {len(matches)} 处连续括号")
+    
+    return content, modified
+
+
 def parse_time(time_str):
     """将时间字符串转换为毫秒"""
     try:
@@ -82,7 +85,7 @@ def parse_time(time_str):
             h, m = 0, 0
             s, ms = parts[0].split('.') if '.' in parts[0] else (parts[0], 0)
 
-        return (int(h) * 3600000 + int(m) * 60000 + int(s) * 1000 +
+        return (int(h) * 3600000 + int(m) * 60000 + int() * 1000 +
                 int(str(ms).ljust(3, '0')[:3]))
     except Exception as e:
         logger.error(f"时间解析错误: {time_str} - {str(e)}")
@@ -178,9 +181,13 @@ def ttml_to_lys(content):
     """主转换函数，从字符串内容处理"""
     try:
         # 预处理移除xmlns=""声明
-        processed_content, modified = preprocess_ttml(content)
+        pro_processed_content, modified = preprocess_ttml(content)
         if modified:
             logger.info(f"移除了xmlns=\"\"声明")
+
+        processed_content, modified_1,matches1 = preprocess_ttml_1(pro_processed_content)
+        if modified_1:
+            logger.info(f"移除了多余的括号")
 
         # 解析XML
         root = ET.fromstring(processed_content)
