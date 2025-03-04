@@ -31,4 +31,4 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          python3 process_lyrics.py
+          python3 ttml_to_lys_on_github.py
