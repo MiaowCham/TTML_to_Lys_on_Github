@@ -1,10 +1,11 @@
-你帮我写一个Python程序实现将ttml文件转换到lys文件,要求把ttml文件拖到软件.py的图标即可转换。需要生成log日志，生成路径在同路径log文件夹中，每天的日志放在同一个日志文件里面防止文件过多
+# 提示词及转换原理
+> 你帮我写一个Python程序实现将ttml文件转换到lys文件,要求把ttml文件拖到软件.py的图标即可转换。需要生成log日志，生成路径在同路径log文件夹中
 
-# 术语解释：
+# 术语解释
 **对唱视图**：通过改变歌词的对齐方式区分演唱者，有左对齐和右对齐<br>
 **背景人声**：通过将文字缩小来表明该歌词不是主要人声
 
-# Lyricify Syllable (lys) 格式规范
+# Lyricify Syllable(lys) 格式规范
 ### [详细请见 Lyricify 仓库](https://github.com/WXRIW/Lyricify-App/blob/main/docs/Lyricify%204/Lyrics.md)
 ## Lyricify Syllable 歌词的标准格式为：
 ### 头部信息
