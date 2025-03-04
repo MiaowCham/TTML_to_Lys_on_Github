@@ -1,10 +1,10 @@
-# TTML to Lyricify Syllable tool
+# TTML to Lyricify Syllable Tool
 **一个适用于 AMLL TTML 文件转 Lyricify Syllable 的小工具**
 
 开发者是[**喵锵**](https://github.com/MiaowCham)，初始版本由 DeepSeek 构建。
 现在[**浩彬**](https://github.com/HKLHaoBin)将工具进行了修改，得以在 GitHub Issue 中使用
 
-TTML 是 AMLL 使用的歌词文件，但很不幸的是：他们并不兼容。并且使用 AMLL TTML Tool 输出的 Lys 格式及其不规范，TTML to Lyricify Syllable tool 就是为了解决这个问题而诞生的。
+TTML 是 AMLL 使用的歌词文件，但很不幸的是：他们并不兼容。并且使用 AMLL TTML Tool 输出的 Lys 格式及其不规范，TTML to Lyricify Syllable Tool 就是为了解决这个问题而诞生的。
 
 现在，一拖、一按，即可完成规范化转换！甚至可以提取翻译并单独输出。
 
