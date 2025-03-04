@@ -260,10 +260,10 @@ def ttml_to_lys(content):
 
             except Exception as e:
                 # logger.warning(f"处理歌词行失败: {str(e)}")
-                logger.exception(f"处理歌词行失败")
+                logger.exception(f"正在开发，这是给开发者看的报错信息：处理歌词行失败")
 
     except Exception as e:
-        logger.exception(f"解析歌词失败")
+        logger.exception(f"正在开发，这是给开发者看的报错信息：解析歌词失败")
         return False, None, None
 
     lys_output = '\n'.join(lys_lines)
@@ -305,20 +305,20 @@ def main():
             if lrc:
                 comment.append("\n**翻译输出:**\n```\n" + lrc + "\n```")
         else:
-            comment.append("处理失败，请检查TTML格式是否正确")
+            comment.append("正在开发，这是给开发者看的报错信息：处理失败，请检查TTML格式是否正确")
 
         # 添加评论
         issue.create_comment('\n'.join(comment))
         logger.success("处理结果已提交到Issue")
 
     except Exception as e:
-        logger.exception("GitHub操作失败")
+        logger.exception("正在开发，这是给开发者看的报错信息：GitHub操作失败")
         # 尝试在出现异常时也发布评论，方便调试
         try:
             if 'issue' in locals():
-                issue.create_comment(f"处理过程中发生错误: {str(e)}")
+                issue.create_comment(f"正在开发，这是给开发者看的报错信息：处理过程中发生错误: {str(e)}")
         except Exception as inner_e:
-            logger.error(f"评论发布失败: {inner_e}")
+            logger.error(f"正在开发，这是给开发者看的报错信息：评论发布失败: {inner_e}")
 
 
 if __name__ == '__main__':
