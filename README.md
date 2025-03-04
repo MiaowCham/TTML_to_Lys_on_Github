@@ -14,10 +14,12 @@ TTML 是 AMLL 使用的歌词文件，但很不幸的是：他们并不兼容。
    - 本工具需要 Python 3.x 以上环境（实际仅在3.11和3.12测试）
    - 在`log\log.set`文件中输入"log_on:True"即可开启日志输出
 
-## TTML to Lys on Github
-TTML to Lys on Github 主要用于实现从 GitHub Issue 中获取歌词内容，将ttml格式歌词转换为lys，然后将处理后的结果以评论的形式附加到该 Issue 中。该工具通过 Python 实现，依赖于 GitHub API 和正则表达式技术，能够高效、智能地完成歌词内容的清理工作。
+### 详细信息请见 [提示词及转换原理](/Prompt_words_&_Conversion_principles.md)
 
-### [点击这里使用本工具](https://github.com/HKLHaoBin/ttml_to_lys/issues)
+## TTML to Lys on Github
+**TTML to Lys on Github** 主要用于实现从 GitHub Issue 中获取歌词内容，将 ttml 格式歌词转换为 lys，然后将处理后的结果以评论的形式附加到该 Issue 中。该工具通过 Python 实现，依赖于 GitHub API 和正则表达式技术，能够高效、智能地完成歌词内容的清理工作。
+
+### > [点击这里使用本工具](https://github.com/HKLHaoBin/ttml_to_lys/issues) <
 
 ### 功能特点
  **GitHub 集成**：
