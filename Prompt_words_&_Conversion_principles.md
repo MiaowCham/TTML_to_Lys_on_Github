@@ -52,11 +52,11 @@ Lyricify Syllable 的歌词头部信息参考 LRC 标准，这里不再重复。
 **TTML** 全称是`Timed Text Markup Language`，是一种基于 XML 的时序文本标记语言，主要用于记录歌词或字幕。现被 [AMLL](https://github.com/Steve-xmh/applemusic-like-lyrics) 用于标记 Apple Music 样式歌词。一般我们使用 [AMLL TTML Tool](https://github.com/Steve-xmh/amll-ttml-tool) 制作 TTML 歌词
 
 需注意的是 TTML 的时间信息使用`mm:ss:ms`的方式记录，和lys的毫秒数不同，需要转换<br>
-在基础的 TTML 内容外，AMLL 为了实现逐词歌词效果进行了小部分更改。我们以下面这个ttml文件举例：
-> [AMLL TTML Tool](https://github.com/Steve-xmh/amll-ttml-tool) 输出的 TTML 文件是没有换行的，所以会是这么一大坨
-```xml
-<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:amll="http://www.example.com/ns/amll" xmlns:itunes="http://music.apple.com/lyric-ttml-internal"><head><metadata><ttm:agent type="person" xml:id="v1"/><ttm:agent type="other" xml:id="v2"/><amll:meta key="musicName" value="song"/><amll:meta key="artists" value="singer"/></metadata></head><body dur="00:08.587"><div begin="00:00.781" end="00:08.587"><p begin="00:00.781" end="00:02.320" ttm:agent="v1" itunes:key="L1"><span begin="00:00.781" end="00:01.225">示</span><span begin="00:01.225" end="00:01.585">例</span><span begin="00:01.585" end="00:01.937">歌</span><span begin="00:01.937" end="00:02.320">词</span><span ttm:role="x-bg" begin="00:02.320" end="00:03.694"><span begin="00:02.320" end="00:02.689">(背</span><span begin="00:02.689" end="00:03.004">景</span><span begin="00:03.004" end="00:03.323">人</span><span begin="00:03.323" end="00:03.694">声)</span></span></p><p begin="00:03.694" end="00:04.799" ttm:agent="v1" itunes:key="L2"><span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译</span><span ttm:role="x-roman">音译</span></p><p begin="00:04.799" end="00:05.911" ttm:agent="v1" itunes:key="L3"><span begin="00:04.799" end="00:05.166">English</span> <span begin="00:05.166" end="00:05.539">version</span> <span begin="00:05.539" end="00:05.911">two</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译</span><span ttm:role="x-roman">音译</span></p><p begin="00:05.911" end="00:07.285" ttm:agent="v2" itunes:key="L4"><span begin="00:05.911" end="00:06.281">对</span><span begin="00:06.281" end="00:06.609">唱</span><span begin="00:06.609" end="00:06.922">视</span><span begin="00:06.922" end="00:07.285">图</span><span ttm:role="x-bg" begin="00:07.285" end="00:08.587"><span begin="00:07.285" end="00:07.616">(对</span><span begin="00:07.616" end="00:07.939">唱</span><span begin="00:07.939" end="00:08.256">背</span><span begin="00:08.587" end="00:08.587">景)</span></span></p></div></body></tt>
-```
+- 在基础的 TTML 内容外，AMLL 为了实现逐词歌词效果进行了小部分更改。我们以下面这个ttml文件举例：<br>
+  [AMLL TTML Tool](https://github.com/Steve-xmh/amll-ttml-tool) 输出的 TTML 文件是没有换行的，所以会是这么一大坨
+   ```xml
+   <tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:amll="http://www.example.com/ns/amll" xmlns:itunes="http://music.apple.com/lyric-ttml-internal"><head><metadata><ttm:agent type="person" xml:id="v1"/><ttm:agent type="other" xml:id="v2"/><amll:meta key="musicName" value="song"/><amll:meta key="artists" value="singer"/></metadata></head><body dur="00:08.587"><div begin="00:00.781" end="00:08.587"><p begin="00:00.781" end="00:02.320" ttm:agent="v1" itunes:key="L1"><span begin="00:00.781" end="00:01.225">示</span><span begin="00:01.225" end="00:01.585">例</span><span begin="00:01.585" end="00:01.937">歌</span><span begin="00:01.937" end="00:02.320">词</span><span ttm:role="x-bg" begin="00:02.320" end="00:03.694"><span begin="00:02.320" end="00:02.689">(背</span><span begin="00:02.689" end="00:03.004">景</span><span begin="00:03.004" end="00:03.323">人</span><span begin="00:03.323" end="00:03.694">声)</span></span></p><p begin="00:03.694" end="00:04.799" ttm:agent="v1" itunes:key="L2"><span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译</span><span ttm:role="x-roman">音译</span></p><p begin="00:04.799" end="00:05.911" ttm:agent="v1" itunes:key="L3"><span begin="00:04.799" end="00:05.166">English</span> <span begin="00:05.166" end="00:05.539">version</span> <span begin="00:05.539" end="00:05.911">two</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译</span><span ttm:role="x-roman">音译</span></p><p begin="00:05.911" end="00:07.285" ttm:agent="v2" itunes:key="L4"><span begin="00:05.911" end="00:06.281">对</span><span begin="00:06.281" end="00:06.609">唱</span><span begin="00:06.609" end="00:06.922">视</span><span begin="00:06.922" end="00:07.285">图</span><span ttm:role="x-bg" begin="00:07.285" end="00:08.587"><span begin="00:07.285" end="00:07.616">(对</span><span begin="00:07.616" end="00:07.939">唱</span><span begin="00:07.939" end="00:08.256">背</span><span begin="00:08.587" end="00:08.587">景)</span></span></p></div></body></tt>
+   ```
 
 ## `<metadata>`标签记录了歌词的meta信息<br>
 其子标签`<ttm:agent type="person" xml:id="v1"/><ttm:agent type="other" xml:id="v2"/>`<br>
@@ -96,65 +96,65 @@ Lyricify Syllable 的歌词头部信息参考 LRC 标准，这里不再重复。
 ```
 ---
 #### 转换示例
-原文
-```xml
-<p begin="00:00.383" end="00:02.191" ttm:agent="v1" itunes:key="L1"><span begin="00:00.383" end="00:00.845">单词1</span><span begin="00:00.845" end="00:01.258">单词2</span><span begin="00:01.258" end="00:01.648">单词3</span><span begin="00:01.648" end="00:02.191">单词4</span></p>
-```
-转换成（歌词行属性信息对应在后文有提）
-```
-[4]单词1(383,462)单词2(845,413)单词3(1258,390)单词4(1648,543)
-```
+- 原文
+   ```xml
+   <p begin="00:00.383" end="00:02.191" ttm:agent="v1" itunes:key="L1"><span begin="00:00.383" end="00:00.845">单词1</span><span begin="00:00.845" end="00:01.258">单词2</span><span begin="00:01.258" end="00:01.648">单词3</span><span begin="00:01.648" end="00:02.191">单词4</span></p>
+   ```
+- 转换成（歌词行属性信息对应在后文有提）
+   ```
+   [4]单词1(383,462)单词2(845,413)单词3(1258,390)单词4(1648,543)
+   ```
 ---
 #### 需要注意的是：单词之间的空格可能会放到`<span>`标签中间
-例如
-```xml
-<span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span>
-<span begin="00:03.694" end="00:04.078">English</span> <span begin="00:04.078" end="00:04.410">version</span> <span begin="00:04.410" end="00:04.799">one</span>
-```
-对应的文本都是 "English version one"<br>
-都转换成：
-```
-[4]English (3694,384)version (4078,332)one(4410,389)
-```
-空格要放到前一个单词的后面
+- 例如
+   ```xml
+   <span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span>
+   <span begin="00:03.694" end="00:04.078">English</span> <span begin="00:04.078" end="00:04.410">version</span> <span begin="00:04.410" end="00:04.799">one</span>
+   ```
+   对应的文本都是 "English version one"<br>
+- 都转换成：
+   ```
+   [4]English (3694,384)version (4078,332)one(4410,389)
+   ```
+   空格要放到前一个单词的后面
 
-不要转换成：
-```
-[4]English(3694,384) (0,0)version(4078,332) (0,0)one(4410,389)
-[4]English(3694,384)" "(0,0)version(4078,332)" "(0,0)one(4410,389)
-[4]English (3694,384)" "(0,0)version (4078,332)" "(0,0)one(4410,389)
-```
-之类的，这是不规范且不美观的
+- 不要转换成：
+   ```
+   [4]English(3694,384) (0,0)version(4078,332) (0,0)one(4410,389)
+   [4]English(3694,384)" "(0,0)version(4078,332)" "(0,0)one(4410,389)
+   [4]English (3694,384)" "(0,0)version (4078,332)" "(0,0)one(4410,389)
+   ```
+   之类的，这是不规范且不美观的
 
 ---
 #### `<span>`内还会出现`ttm:role=""`，用途如下
 
-#### `ttm:role="x-bg"`表明该被其包裹的内容是背景人声，例如
-```xml
-<span ttm:role="x-bg" begin="00:02.320" end="00:03.694"><span begin="00:02.320" end="00:02.689">(背</span><span begin="00:02.689" end="00:03.004">景</span><span begin="00:03.004" end="00:03.323">人</span><span begin="00:03.323" end="00:03.694">声)</span></span>
-```
-此时需要将这个`<span>`作为一个单独的一行句子处理。
+- `ttm:role="x-bg"`表明该被其包裹的内容是背景人声，例如
+   ```xml
+   <span ttm:role="x-bg" begin="00:02.320" end="00:03.694"><span begin="00:02.320" end="00:02.689">(背</span><span begin="00:02.689" end="00:03.004">景</span><span begin="00:03.004" end="00:03.323">人</span><span begin="00:03.323" end="00:03.694">声)</span></span>
+   ```
+   此时需要将这个`<span>`作为一个单独的一行句子处理。
 
-#### `ttm:role=""`信息还能用于翻译和音译
-`ttm:role="x-translation"`表明该单词是该句子的翻译，例如
-```xml
-<span ttm:role="x-translation" xml:lang="zh-CN">翻译</span>
-```
-由于 lys 不内置翻译，所以需要额外输出一份 lrc 格式的歌词，在原文件名后面加上`_trans`表明是翻译文件。只要有一句翻译内容，全部句子都得有翻译输出，没有翻译的句子只输出时间轴不输出内容。<br>
-向上找到翻译对应的歌词行`（正常情况下是<p>，如果找到<span ttm:role="x-bg">背景人声则代表这是背景人声的翻译）`找到其开始时间并放到 lrc 的时间轴里
+**`ttm:role=""`信息还能用于翻译和音译**
+- `ttm:role="x-translation"`表明该单词是该句子的翻译，例如
+   ```xml
+   <span ttm:role="x-translation" xml:lang="zh-CN">翻译</span>
+   ```
+  由于 lys 不内置翻译，所以需要额外输出一份 lrc 格式的歌词，在原文件名后面加上`_trans`表明是翻译文件。只要有一句翻译内容，全部句子都得有翻译输出，没有翻译的句子只输出时间轴不输出内容。<br>
+  向上找到翻译对应的歌词行`（正常情况下是<p>，如果找到<span ttm:role="x-bg">背景人声则代表这是背景人声的翻译）`找到其开始时间并放到 lrc 的时间轴里
 
-示例：
-```xml
-<p begin="00:03.694" end="00:04.799" ttm:agent="v1" itunes:key="L2"><span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译</span></p>
-```
-转换为 lys 和 lrc 文件
-```lys
-[4]English (3694,384)version (4078,332)one(4410,389)
-```
-```lrc
-[00:03.694]翻译
-```
-#### `ttm:role="x-roman"`表明该单词是该句子的音译。但由于使用lys的软件会自动生成音译，所以直接忽略
+  - 示例：
+      ```xml
+      <p begin="00:03.694" end="00:04.799" ttm:agent="v1" itunes:key="L2"><span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译</span></p>
+      ```
+   - 转换为 lys 和 lrc 文件
+      ```lys
+      [4]English (3694,384)version (4078,332)one(4410,389)
+      ```
+      ```lrc
+      [00:03.694]翻译
+      ```
+- `ttm:role="x-roman"`表明该单词是该句子的音译。但由于使用lys的软件会自动生成音译，所以直接忽略
 
 ### 歌词行属性信息对应
 
@@ -166,26 +166,26 @@ Lyricify Syllable 的歌词头部信息参考 LRC 标准，这里不再重复。
 尽量不要使用含有未设置属性的`[property]`，也就是`[0] [1] [2] [3] [6]`，这是不规范的
 
 ## 下面是一个ttml文件转换为lys的示例
-原文件`test.ttml`
-```xml
-<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:amll="http://www.example.com/ns/amll" xmlns:itunes="http://music.apple.com/lyric-ttml-internal"><head><metadata><ttm:agent type="person" xml:id="v1"/><ttm:agent type="other" xml:id="v2"/><amll:meta key="musicName" value="song"/><amll:meta key="artists" value="singer"/></metadata></head><body dur="00:08.587"><div begin="00:00.781" end="00:08.587"><p begin="00:00.781" end="00:02.320" ttm:agent="v1" itunes:key="L1"><span begin="00:00.781" end="00:01.225">示</span><span begin="00:01.225" end="00:01.585">例</span><span begin="00:01.585" end="00:01.937">歌</span><span begin="00:01.937" end="00:02.320">词</span><span ttm:role="x-bg" begin="00:02.320" end="00:03.694"><span begin="00:02.320" end="00:02.689">(背</span><span begin="00:02.689" end="00:03.004">景</span><span begin="00:03.004" end="00:03.323">人</span><span begin="00:03.323" end="00:03.694">声)</span></span></p><p begin="00:03.694" end="00:04.799" ttm:agent="v1" itunes:key="L2"><span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译1</span><span ttm:role="x-roman">音译</span></p><p begin="00:04.799" end="00:05.911" ttm:agent="v1" itunes:key="L3"><span begin="00:04.799" end="00:05.166">English</span> <span begin="00:05.166" end="00:05.539">version</span> <span begin="00:05.539" end="00:05.911">two</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译2</span><span ttm:role="x-roman">音译</span></p><p begin="00:05.911" end="00:07.285" ttm:agent="v2" itunes:key="L4"><span begin="00:05.911" end="00:06.281">对</span><span begin="00:06.281" end="00:06.609">唱</span><span begin="00:06.609" end="00:06.922">视</span><span begin="00:06.922" end="00:07.285">图</span><span ttm:role="x-bg" begin="00:07.285" end="00:08.587"><span begin="00:07.285" end="00:07.616">(对</span><span begin="00:07.616" end="00:07.939">唱</span><span begin="00:07.939" end="00:08.256">背</span><span begin="00:08.587" end="00:08.587">景)</span></span></p></div></body></tt>
-```
+- 原文件`test.ttml`
+   ```xml
+   <tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:amll="http://www.example.com/ns/amll" xmlns:itunes="http://music.apple.com/lyric-ttml-internal"><head><metadata><ttm:agent type="person" xml:id="v1"/><ttm:agent type="other" xml:id="v2"/><amll:meta key="musicName" value="song"/><amll:meta key="artists" value="singer"/></metadata></head><body dur="00:08.587"><div begin="00:00.781" end="00:08.587"><p begin="00:00.781" end="00:02.320" ttm:agent="v1" itunes:key="L1"><span begin="00:00.781" end="00:01.225">示</span><span begin="00:01.225" end="00:01.585">例</span><span begin="00:01.585" end="00:01.937">歌</span><span begin="00:01.937" end="00:02.320">词</span><span ttm:role="x-bg" begin="00:02.320" end="00:03.694"><span begin="00:02.320" end="00:02.689">(背</span><span begin="00:02.689" end="00:03.004">景</span><span begin="00:03.004" end="00:03.323">人</span><span begin="00:03.323" end="00:03.694">声)</span></span></p><p begin="00:03.694" end="00:04.799" ttm:agent="v1" itunes:key="L2"><span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译1</span><span ttm:role="x-roman">音译</span></p><p begin="00:04.799" end="00:05.911" ttm:agent="v1" itunes:key="L3"><span begin="00:04.799" end="00:05.166">English</span> <span begin="00:05.166" end="00:05.539">version</span> <span begin="00:05.539" end="00:05.911">two</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译2</span><span ttm:role="x-roman">音译</span></p><p begin="00:05.911" end="00:07.285" ttm:agent="v2" itunes:key="L4"><span begin="00:05.911" end="00:06.281">对</span><span begin="00:06.281" end="00:06.609">唱</span><span begin="00:06.609" end="00:06.922">视</span><span begin="00:06.922" end="00:07.285">图</span><span ttm:role="x-bg" begin="00:07.285" end="00:08.587"><span begin="00:07.285" end="00:07.616">(对</span><span begin="00:07.616" end="00:07.939">唱</span><span begin="00:07.939" end="00:08.256">背</span><span begin="00:08.587" end="00:08.587">景)</span></span></p></div></body></tt>
+   ```
 由于有翻译内容，转换后会生成 lys 和 lrc<br>
-输出文件：`test.lys`
-```
-[4]示(781,444)例(1225,360)歌(1585,352)词(1937,383)
-[7]背(2320,369)景(2689,315)人(3004,319)声(3323,371)
-[4]English (3694,384)version (4078,332)one(4410,389)
-[4]English (4799,367)version (5166,373)two(5539,372)
-[5]对(5911,370)唱(6281,328)视(6609,313)图(6922,363)
-[8]对(7285,331)唱(7616,323)背(7939,317)景(8587,0)
-```
-翻译文件：`test_trans.lrc`
-```
-[00:00.781]
-[00:02.320]
-[00:03.694]翻译1
-[00:04.799]翻译2
-[00:05.911]
-[00:07.285]
-```
+- 输出文件：`test.lys`
+   ```
+   [4]示(781,444)例(1225,360)歌(1585,352)词(1937,383)
+   [7]背(2320,369)景(2689,315)人(3004,319)声(3323,371)
+   [4]English (3694,384)version (4078,332)one(4410,389)
+   [4]English (4799,367)version (5166,373)two(5539,372)
+   [5]对(5911,370)唱(6281,328)视(6609,313)图(6922,363)
+   [8]对(7285,331)唱(7616,323)背(7939,317)景(8587,0)
+   ```
+- 翻译文件：`test_trans.lrc`
+   ```
+   [00:00.781]
+   [00:02.320]
+   [00:03.694]翻译1
+   [00:04.799]翻译2
+   [00:05.911]
+   [00:07.285]
+   ```
