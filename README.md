@@ -21,14 +21,21 @@ TTML 是 AMLL 使用的歌词文件，但很不幸的是：他们并不兼容。
 
 ### > [点击这里使用本工具](https://github.com/HKLHaoBin/ttml_to_lys/issues) <
 
+### 使用方法
+1. 新建 **issue**，选择 **TTML歌词转Lys**
+3. 将需要转换的 **ttml** 格式的歌词复制到 **Description 描述** 中
+4. 发送 **issue** 并等待脚本转换
+
+**修正后的结果会以评论形式提交到相应的 Issue 中。**
+
+### 注意事项
+- 尽量将标题改为文件名或歌曲名，以便区分
+- Label 需要是`ttml_to_lys`才会触发转换
+
 ### 功能特点
  **GitHub 集成**：
    - 从指定 GitHub Issue 中提取内容。
    - 将修正后的结果以评论形式提交到相应的 Issue 中。
-
-### 使用说明
-
-脚本会自动从指定的 GitHub Issue 中读取内容，处理后将结果作为评论添加到 Issue 中。
 
 ## 示例
 假设 Issue 内容为：
