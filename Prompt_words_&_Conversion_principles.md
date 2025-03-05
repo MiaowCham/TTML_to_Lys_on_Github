@@ -130,14 +130,14 @@ Lyricify Syllable 的歌词头部信息参考 LRC 标准，这里不再重复。
 #### `<span>`内还会出现`ttm:role=""`，用途如下
 
 #### `ttm:role="x-bg"`表明该被其包裹的内容是背景人声，例如
-```
+```xml
 <span ttm:role="x-bg" begin="00:02.320" end="00:03.694"><span begin="00:02.320" end="00:02.689">(背</span><span begin="00:02.689" end="00:03.004">景</span><span begin="00:03.004" end="00:03.323">人</span><span begin="00:03.323" end="00:03.694">声)</span></span>
 ```
 此时需要将这个`<span>`作为一个单独的一行句子处理。
 
 #### `ttm:role=""`信息还能用于翻译和音译
 `ttm:role="x-translation"`表明该单词是该句子的翻译，例如
-```
+```xml
 <span ttm:role="x-translation" xml:lang="zh-CN">翻译</span>
 ```
 由于 lys 不内置翻译，所以需要额外输出一份 lrc 格式的歌词，在原文件名后面加上`_trans`表明是翻译文件。只要有一句翻译内容，全部句子都得有翻译输出，没有翻译的句子只输出时间轴不输出内容。<br>
@@ -147,7 +147,7 @@ Lyricify Syllable 的歌词头部信息参考 LRC 标准，这里不再重复。
 ```xml
 <p begin="00:03.694" end="00:04.799" ttm:agent="v1" itunes:key="L2"><span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译</span></p>
 ```
-转换为lys和lrc文件
+转换为 lys 和 lrc 文件
 ```lys
 [4]English (3694,384)version (4078,332)one(4410,389)
 ```
@@ -163,15 +163,15 @@ Lyricify Syllable 的歌词头部信息参考 LRC 标准，这里不再重复。
 - 如果一行歌词的演唱者是`v1`且`ttm:role="x-bg"`说明是背景歌词，对应 lys 的`[property]`是 [7]<br>
 - 如果一行歌词的演唱者是`v2`且`ttm:role="x-bg"`说明是背景歌词，对应 lys 的`[property]`是 [8]
 
-尽量不要使用含有未设置属性的`[property]`，也就是 [0][1][2][3][6] ，这是不规范的
+尽量不要使用含有未设置属性的`[property]`，也就是`[0] [1] [2] [3] [6]`，这是不规范的
 
 ## 下面是一个ttml文件转换为lys的示例
 原文件`test.ttml`
 ```xml
 <tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:amll="http://www.example.com/ns/amll" xmlns:itunes="http://music.apple.com/lyric-ttml-internal"><head><metadata><ttm:agent type="person" xml:id="v1"/><ttm:agent type="other" xml:id="v2"/><amll:meta key="musicName" value="song"/><amll:meta key="artists" value="singer"/></metadata></head><body dur="00:08.587"><div begin="00:00.781" end="00:08.587"><p begin="00:00.781" end="00:02.320" ttm:agent="v1" itunes:key="L1"><span begin="00:00.781" end="00:01.225">示</span><span begin="00:01.225" end="00:01.585">例</span><span begin="00:01.585" end="00:01.937">歌</span><span begin="00:01.937" end="00:02.320">词</span><span ttm:role="x-bg" begin="00:02.320" end="00:03.694"><span begin="00:02.320" end="00:02.689">(背</span><span begin="00:02.689" end="00:03.004">景</span><span begin="00:03.004" end="00:03.323">人</span><span begin="00:03.323" end="00:03.694">声)</span></span></p><p begin="00:03.694" end="00:04.799" ttm:agent="v1" itunes:key="L2"><span begin="00:03.694" end="00:04.078">English </span><span begin="00:04.078" end="00:04.410">version </span><span begin="00:04.410" end="00:04.799">one</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译1</span><span ttm:role="x-roman">音译</span></p><p begin="00:04.799" end="00:05.911" ttm:agent="v1" itunes:key="L3"><span begin="00:04.799" end="00:05.166">English</span> <span begin="00:05.166" end="00:05.539">version</span> <span begin="00:05.539" end="00:05.911">two</span><span ttm:role="x-translation" xml:lang="zh-CN">翻译2</span><span ttm:role="x-roman">音译</span></p><p begin="00:05.911" end="00:07.285" ttm:agent="v2" itunes:key="L4"><span begin="00:05.911" end="00:06.281">对</span><span begin="00:06.281" end="00:06.609">唱</span><span begin="00:06.609" end="00:06.922">视</span><span begin="00:06.922" end="00:07.285">图</span><span ttm:role="x-bg" begin="00:07.285" end="00:08.587"><span begin="00:07.285" end="00:07.616">(对</span><span begin="00:07.616" end="00:07.939">唱</span><span begin="00:07.939" end="00:08.256">背</span><span begin="00:08.587" end="00:08.587">景)</span></span></p></div></body></tt>
 ```
-由于有翻译内容，转换后会生成lys和lrc
-转换文件：`test.lys`
+由于有翻译内容，转换后会生成 lys 和 lrc<br>
+输出文件：`test.lys`
 ```
 [4]示(781,444)例(1225,360)歌(1585,352)词(1937,383)
 [7]背(2320,369)景(2689,315)人(3004,319)声(3323,371)
