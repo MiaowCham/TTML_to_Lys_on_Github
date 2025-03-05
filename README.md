@@ -2,7 +2,7 @@
 ###### **TTML to Lyricify Syllable Tool** 本地脚本已迁移至单独仓库 [点我前往](https://github.com/MiaowCham/TTML_to_Lyricify_Syllable_Tool)
 **TTML to Lys on Github** 主要用于实现从 GitHub Issue 中获取歌词内容，将 ttml 格式歌词转换为 lys，然后将处理后的结果以评论的形式附加到该 Issue 中。该工具通过 Python 实现，依赖于 GitHub API 和正则表达式技术，能够高效、智能地完成歌词内容的清理工作。
 
-### > [点击这里使用本工具](https://github.com/HKLHaoBin/ttml_to_lys/issues) <
+### > [点击这里使用本工具](https://github.com/HKLHaoBin/ttml_to_lys/issues/new/choose) <
 
 ### 使用方法
 1. 新建 **issue**，选择 **TTML歌词转Lys**
