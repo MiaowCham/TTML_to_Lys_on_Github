@@ -85,7 +85,7 @@ def parse_time(time_str):
             h, m = 0, 0
             s, ms = parts[0].split('.') if '.' in parts[0] else (parts[0], 0)
 
-        return (int(h) * 3600000 + int(m) * 60000 + int() * 1000 +
+        return (int(h) * 3600000 + int(m) * 60000 + int(s) * 1000 +
                 int(str(ms).ljust(3, '0')[:3]))
     except Exception as e:
         logger.error(f"时间解析错误: {time_str} - {str(e)}")
@@ -185,7 +185,7 @@ def ttml_to_lys(content):
         if modified:
             logger.info(f"移除了xmlns=\"\"声明")
 
-        processed_content, modified_1,matches1 = preprocess_ttml_1(pro_processed_content)
+        processed_content, modified_1 = preprocess_ttml_1(pro_processed_content)  # 修正此处
         if modified_1:
             logger.info(f"移除了多余的括号")
 
