@@ -24,19 +24,6 @@ namespaces = {
     'amll': 'http://www.example.com/ns/amll',
     'itunes': 'http://music.apple.com/lyric-ttml-internal'
 }
-'''
-from datetime import datetime
-datetime.now().strftime('%Y-%m-%d')
-
-# 获取日志文件夹路径
-log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log')
-
-# 获取已有日志文件并计算编号
-existing_logs = [f for f in os.listdir(log_dir) if f.startswith('') and f.endswith('.log')]
-log_number = len(existing_logs) + 1  # 下一个编号
-'''
-#logger.add(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log',f"{datetime.now().strftime('%Y-%m-%d %H.%M.%S')}.log"),level='DEBUG')
-#将上面这行改为注释可以取消debug输出
 
 from datetime import datetime
 
