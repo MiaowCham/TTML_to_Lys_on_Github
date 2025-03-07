@@ -1,0 +1,31 @@
+name: 测试模板
+description: 模板简介
+title: "[标题] "
+labels: ["标签"]
+body:
+  - type: input
+    id: ttml-download-url
+    attributes:
+      label: 测试：文本框提示
+      description: |
+        测试：文本框下方灰字提示
+    validations:
+      required: true
+  - type: dropdown
+    id: upload-reason
+    attributes:
+      label: 提交缘由
+      description: 是一首新歌曲的歌词呢？还是原来的歌词有疏漏或者错误呢？
+      options:
+        - 新歌词提交
+        - 修正已有歌词
+    validations:
+      required: true
+  - type: textarea
+    id: comment
+    attributes:
+      label: 测试：其他文本输入
+      description: |
+        其他文本
+    validations:
+      required: false
