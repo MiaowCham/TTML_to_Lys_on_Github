@@ -1,21 +1,21 @@
-name: 测试模板
-description: 模板简介
-title: "[标题] "
-labels: ["标签"]
+name: LYS 歌词转 SPL(测试模板)
+description: 创建 LYS 歌词转 SPL 请求
+title: "[歌词转换] "
+labels: ["LYS_to_SPL"]
 body:
   - type: input
     id: input_id
     attributes:
-      label: 测试：文本框提示
+      label: offset
       description: |
-        测试：文本框下方灰字提示
+        在这里输入歌词偏移量, 一般情况请填150, 没有偏移量填0
     validations:
       required: false
   - type: textarea
     id: comment
     attributes:
-      label: 测试：其他文本输入
+      label: LYS 歌词
       description: |
-        其他文本
+        请在此处填入待转换的歌词
     validations:
       required: false
