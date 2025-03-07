@@ -2,7 +2,7 @@ name: Process Lyricify Syllable Lyrics
 
 on:
   issues:
-    types: [opened, edited, labeled]
+    types: [opened, edited]
 
 permissions:
   issues: write
