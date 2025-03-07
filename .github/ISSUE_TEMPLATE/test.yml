@@ -11,16 +11,6 @@ body:
         测试：文本框下方灰字提示
     validations:
       required: true
-  - type: dropdown
-    id: upload-reason
-    attributes:
-      label: 提交缘由
-      description: 是一首新歌曲的歌词呢？还是原来的歌词有疏漏或者错误呢？
-      options:
-        - 新歌词提交
-        - 修正已有歌词
-    validations:
-      required: true
   - type: textarea
     id: comment
     attributes:
