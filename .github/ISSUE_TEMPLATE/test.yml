@@ -4,13 +4,13 @@ title: "[标题] "
 labels: ["标签"]
 body:
   - type: input
-    id: ttml-download-url
+    id: input_id
     attributes:
       label: 测试：文本框提示
       description: |
         测试：文本框下方灰字提示
     validations:
-      required: true
+      required: false
   - type: textarea
     id: comment
     attributes:
