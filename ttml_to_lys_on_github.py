@@ -1,9 +1,12 @@
 import os
 import re
 import string
+import logging
 import sys
 import xml.etree.ElementTree as ET
 from datetime import date, datetime
+import base64
+from github import Github
 
 from pip import main as pip_main
 
@@ -17,12 +20,6 @@ except ImportError:
 finally:
     from loguru import logger
 
-try:
-    from github import Github
-except ImportError:
-    pip_main(['install', 'PyGithub'])
-    from github import Github
-
 namespaces = {
     'tt': 'http://www.w3.org/ns/ttml',
     'ttm': 'http://www.w3.org/ns/ttml#metadata',
@@ -30,45 +27,30 @@ namespaces = {
     'itunes': 'http://music.apple.com/lyric-ttml-internal'
 }
 
-
-logger.add(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log',
-                        f"{datetime.now().strftime('%Y-%m-%d')}.log"),
-           level='DEBUG')
-
+# 设置日志
+logger.add(sys.stderr, level='INFO')
 
 def preprocess_ttml(content):
     """预处理TTML内容，移除xmlns=""声明"""
-    # 使用正则表达式精确匹配 xmlns=""
     pattern = re.compile(r'\s+xmlns=""')
     modified = False
-
-    # 查找所有匹配项
     matches = pattern.findall(content)
     if matches:
         modified = True
-        # 移除所有匹配的xmlns声明
         content = pattern.sub('', content)
         logger.info(f"发现并移除了 {len(matches)} 处xmlns=\"\"声明")
-
-    return content, modified
-
+    return content, modified, matches
 
 def preprocess_ttml_1(content):
     """预处理TTML内容，移除过多括号"""
-    # 匹配连续两个或以上的相同括号（( 或 )）
-    pattern = re.compile(r'([()])\1+')  # \1+ 表示重复一次或多次
+    pattern = re.compile(r'([()])1+')
     modified = False
-
-    # 查找所有匹配项
     matches = pattern.findall(content)
     if matches:
         modified = True
-        # 将连续重复的括号替换为单个
         content = pattern.sub(r'\1', content)
         logger.info(f"发现并移除了 {len(matches)} 处连续括号")
-    
-    return content, modified
-
+    return content, modified, matches
 
 def parse_time(time_str):
     """将时间字符串转换为毫秒"""
@@ -91,7 +73,6 @@ def parse_time(time_str):
         logger.error(f"时间解析错误: {time_str} - {str(e)}")
         return 0
 
-
 def format_lrc_time(millis):
     """将毫秒转换为LRC时间格式 (mm:ss.xx)"""
     millis = max(0, millis)
@@ -100,7 +81,6 @@ def format_lrc_time(millis):
     ms = millis % 1000
     return f"{m:02d}:{s:02d}.{ms:03d}"
 
-
 def calculate_property(alignment, background):
     """计算LYS属性值"""
     if background:
@@ -108,11 +88,10 @@ def calculate_property(alignment, background):
     else:
         return {None: 3, 'left': 4, 'right': 5}.get(alignment, 3)
 
-
 def process_segment(spans, alignment, is_background):
     """处理歌词段生成LYS行（最终空格修复版）"""
     parts = []
-    pending_whitespace = ''  # 跟踪待处理的空白字符
+    pending_whitespace = ''
 
     for span in spans:
         try:
@@ -126,34 +105,26 @@ def process_segment(spans, alignment, is_background):
             if duration <= 0:
                 continue
 
-            # 合并前导空白和当前文本
             full_text = pending_whitespace + (span.text or '')
-
-            # 分离文本和尾部空白
-            clean_text = full_text.rstrip(' ')  # 移除末尾空格但保留其他字符
+            clean_text = full_text.rstrip(' ')
             trailing_spaces = len(full_text) - len(clean_text)
 
-            # 处理span的尾部内容
             tail = span.tail or ''
-            tail_clean = tail.lstrip(' ')  # 移除头部空格
+            tail_clean = tail.lstrip(' ')
             leading_spaces = len(tail) - len(tail_clean)
 
-            # 合并空格到前一个单词
             word = clean_text
             if trailing_spaces > 0 or leading_spaces > 0:
                 word += ' ' * (trailing_spaces + leading_spaces)
 
-            # 生成时间标记
             if word:
                 parts.append(f"{word}({start},{duration})")
 
-            # 更新待处理空白
             pending_whitespace = tail_clean if not tail_clean.strip() else ''
 
         except Exception as e:
             logger.warning(f"处理span失败: {str(e)}")
 
-    # 处理最后一个单词后的空白
     if pending_whitespace.strip():
         parts.append(f"{pending_whitespace}(0,0)")
 
@@ -162,7 +133,6 @@ def process_segment(spans, alignment, is_background):
 
     prop = calculate_property(alignment, is_background)
     return f"[{prop}]" + "".join(parts)
-
 
 def process_translations(p_element):
     """处理翻译内容"""
@@ -176,25 +146,23 @@ def process_translations(p_element):
                     translations.append(text)
     return ' '.join(translations)
 
-
-def ttml_to_lys(content):
-    """主转换函数，从字符串内容处理"""
+def ttml_to_lys(ttml_content):
+    """主转换函数"""
     try:
         # 预处理移除xmlns=""声明
-        pro_processed_content, modified = preprocess_ttml(content)
-        if modified:
-            logger.info(f"移除了xmlns=\"\"声明")
+        pro_processed_content, modified, matches = preprocess_ttml(ttml_content)
+        revise_1 = modified
 
-        processed_content, modified_1 = preprocess_ttml_1(pro_processed_content)  # 修正此处
-        if modified_1:
-            logger.info(f"移除了多余的括号")
+        # 预处理移除多余括号
+        processed_content, modified_1, matches1 = preprocess_ttml_1(pro_processed_content)
+        revise_2 = modified_1
 
         # 解析XML
         root = ET.fromstring(processed_content)
 
     except Exception as e:
-        logger.exception(f"无法解析TTML内容")
-        return False, None, None
+        logger.exception("无法解析TTML内容")
+        return None
 
     lys_lines = []
     lrc_entries = []
@@ -212,39 +180,32 @@ def ttml_to_lys(content):
                 elif agent == 'v2':
                     alignment = 'right'
 
-                logger.debug(f"开始处理Agent: {agent=}")
-
                 # 处理翻译
                 translation = process_translations(p)
                 if translation:
                     has_translations = True
-                    logger.debug(f"开始处理翻译: {translation=}")
 
                 # 获取时间信息
                 p_begin = p.get('begin')
                 lrc_time = format_lrc_time(parse_time(p_begin))
                 lrc_entries.append((lrc_time, translation))
-                logger.debug(f"开始处理行: {lrc_time=} (p[begin={p_begin}])")
 
                 # 分离主歌词和背景人声
                 main_spans = []
                 bg_spans = []
-                current_bg = False
 
-                for elem in p:
-                    if elem.tag == f'{{{namespaces["tt"]}}}span':
-                        role = elem.get(f'{{{namespaces["ttm"]}}}role')
-                        if role == 'x-bg':
-                            bg_spans.extend(
-                                elem.findall('.//tt:span', namespaces))
-                            current_bg = True
+                def analyse_line(line: ET.Element, is_bg: bool):
+                    for word in line:
+                        word_role = word.get(f'{{{namespaces["ttm"]}}}role')
+                        if word_role == 'x-bg':
+                            analyse_line(word, True)
                         else:
-                            if current_bg:
-                                bg_spans.append(elem)
+                            if is_bg:
+                                bg_spans.append(word)
                             else:
-                                main_spans.append(elem)
-                    else:
-                        current_bg = False
+                                main_spans.append(word)
+
+                analyse_line(p, False)
 
                 # 处理主歌词行
                 if main_spans:
@@ -259,68 +220,80 @@ def ttml_to_lys(content):
                         lys_lines.append(bg_line)
 
             except Exception as e:
-                # logger.warning(f"处理歌词行失败: {str(e)}")
-                logger.exception(f"正在开发，这是给开发者看的报错信息：处理歌词行失败")
+                logger.exception("处理歌词行失败")
 
     except Exception as e:
-        logger.exception(f"正在开发，这是给开发者看的报错信息：解析歌词失败")
-        return False, None, None
+        logger.exception("解析歌词失败")
+        return None
 
-    lys_output = '\n'.join(lys_lines)
-    lrc_output = '\n'.join([f"[{t[0]}]{t[1]}" for t in lrc_entries]) if has_translations else None
+    result = {
+        'lys_content': '\n'.join(lys_lines),
+        'has_translations': has_translations,
+        'lrc_content': '\n'.join([f"[{time}]{text}" for time, text in lrc_entries]) if has_translations else None,
+        'revisions': {
+            'xmlns_removed': revise_1,
+            'brackets_fixed': revise_2,
+            'xmlns_matches': len(matches) if matches else 0,
+            'bracket_matches': len(matches1) if matches1 else 0
+        }
+    }
 
-    return True, lys_output, lrc_output
+    return result
 
-
-def main():
-    """GitHub Issue处理主函数"""
-    # 从环境变量获取GitHub信息
-    token = os.getenv('GITHUB_TOKEN')
-    issue_number = int(os.getenv('ISSUE_NUMBER'))
-    repo_name = os.getenv('GITHUB_REPOSITORY')
-
-    if not all([token, issue_number, repo_name]):
-        logger.error("缺少必要的环境变量")
-        return
-
+def process_issue():
+    """处理GitHub Issue"""
     try:
-        # 初始化GitHub连接
-        g = Github(token)
+        # 获取环境变量
+        github_token = os.environ['GITHUB_TOKEN']
+        repo_name = os.environ['GITHUB_REPOSITORY']
+        issue_number = int(os.environ['ISSUE_NUMBER'])
+
+        # 初始化GitHub客户端
+        g = Github(github_token)
         repo = g.get_repo(repo_name)
-        issue = repo.get_issue(number=issue_number)
+        issue = repo.get_issue(issue_number)
 
         # 获取Issue内容
-        ttml_content = issue.body
-        if not ttml_content:
-            issue.create_comment("错误：Issue内容为空")
+        body = issue.body
+        if not body:
+            issue.create_comment("❌ Issue内容为空，请提供TTML内容")
             return
 
         # 处理TTML内容
-        success, lys, lrc = ttml_to_lys(ttml_content)
+        result = ttml_to_lys(body)
+        if not result:
+            issue.create_comment("❌ TTML处理失败，请检查内容格式是否正确")
+            return
 
-        # 构建评论内容
-        comment = []
-        if success:
-            comment.append("**LYS 输出:**\n```\n" + lys + "\n```")
-            if lrc:
-                comment.append("\n**翻译输出:**\n```\n" + lrc + "\n```")
-        else:
-            comment.append("正在开发，这是给开发者看的报错信息：处理失败，请检查TTML格式是否正确")
+        # 准备评论内容
+        comment = ["✅ 转换完成！"]
 
-        # 添加评论
+        # 添加LYS文件
+        comment.append("\n### LYS文件内容")
+        comment.append("```")
+        comment.append(result['lys_content'])
+        comment.append("```")
+
+        # 如果有翻译，添加LRC文件
+        if result['has_translations']:
+            comment.append("\n### 翻译文件内容")
+            comment.append("```")
+            comment.append(result['lrc_content'])
+            comment.append("```")
+
+        # 添加处理信息
+        if result['revisions']['xmlns_removed']:
+            comment.append(f"\n处理文件时移除了 {result['revisions']['xmlns_matches']} 处xmlns=\"\"声明")
+        if result['revisions']['brackets_fixed']:
+            comment.append(f"处理文件时移除了 {result['revisions']['bracket_matches']} 处多余的括号")
+
+        # 发布评论
         issue.create_comment('\n'.join(comment))
-        logger.success("处理结果已提交到Issue")
 
     except Exception as e:
-        logger.exception("正在开发，这是给开发者看的报错信息：GitHub操作失败")
-        # 尝试在出现异常时也发布评论，方便调试
-        try:
-            if 'issue' in locals():
-                issue.create_comment(f"正在开发，这是给开发者看的报错信息：处理过程中发生错误: {str(e)}")
-        except Exception as inner_e:
-            logger.error(f"正在开发，这是给开发者看的报错信息：评论发布失败: {inner_e}")
-
+        logger.exception("处理Issue时发生错误")
+        if 'issue' in locals():
+            issue.create_comment(f"❌ 处理过程中发生错误：{str(e)}")
 
 if __name__ == '__main__':
-    main()
-    # 移除原文件处理相关代码
+    process_issue()
