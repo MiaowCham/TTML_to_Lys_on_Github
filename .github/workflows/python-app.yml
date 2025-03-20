@@ -33,3 +33,16 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           python3 ttml_to_lys_on_github.py
+
+      - name: Close Issue
+        if: success()  # 仅在之前步骤成功时关闭
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
