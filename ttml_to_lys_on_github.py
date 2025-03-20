@@ -138,88 +138,62 @@ class TTMLLine:
     def to_str(self) -> tuple[tuple[str, str|None],tuple[str, str|None]|None]:
         return self.__raw(), (self.__bg_line.__raw() if self.__bg_line else None)
 
-def ttml_to_lys(input_path):
-    """主转换函数"""
+def ttml_to_lys(content: str) -> tuple[bool, str | None, str | None]:
+    """直接输入 TTML 内容字符串，返回转换后的歌词和翻译文本"""
     TTMLLine.have_duet = False
     TTMLLine.have_bg = 0
     TTMLLine.have_ts = False
 
     try:
-        # 解析XML文件
-        dom = xml.dom.minidom.parse(input_path)  # 假设文件名是 'books.xml'
-        tt: Document = dom.documentElement  # 获取根元素
+        # 直接从字符串解析 XML
+        dom = xml.dom.minidom.parseString(content)
+        tt: Document = dom.documentElement
 
-        # 获取tt中的body/head元素
         body = tt.getElementsByTagName('body')[0]
         head = tt.getElementsByTagName('head')[0]
 
         if body and head:
-            # 获取body/head中的<div>/<metadata>子元素
             div = body.getElementsByTagName('div')[0]
             metadata = head.getElementsByTagName('metadata')[0]
 
-            # 获取div中的所有<p>子元素
             p_elements = div.getElementsByTagName('p')
             meta_elements = metadata.getElementsByTagName('amll:meta')
 
-            # 检查是否有对唱
             for meta in meta_elements:
                 if meta.getAttribute('xml:id') != 'v1':
                     TTMLLine.have_duet = True
 
             lines: list[TTMLLine] = []
-            # 遍历每个<p>元素
             for p in p_elements:
                 lines.append(TTMLLine(p))
-
-                # 打印行
                 logger.info(f"TTML第{p_elements.index(p)}行内容：{lines[-1].to_str()[0][0]}")
 
-            # 获取当前.py文件的目录路径
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-
-            # 创建output目录（如果不存在的话）
-            output_dir = os.path.join(script_dir, 'output')
-            os.makedirs(output_dir, exist_ok=True)  # 确保目录存在
-
-            # 修改路径
-            base_name = os.path.splitext(input_path)[0]
-
-            lyric_file: TextIO|None = None
-            trans_file: TextIO|None = None
-
-            lyric_path = os.path.join(output_dir, f"{os.path.basename(base_name)}.lys")
-            lyric_file = open(lyric_path, 'w')
-
-            if TTMLLine.have_ts:
-                trans_path = os.path.join(output_dir, f"{os.path.basename(base_name)}_trans.lrc")
-                trans_file = open(trans_path, 'w')
-
-            count: int = 0
+            lyric_content = ""
+            trans_content = ""
 
             for main_line, bg_line in [line.to_str() for line in lines]:
-                lyric_file.write(main_line[0] + '\n')
-                lyric_file.flush()
+                lyric_content += main_line[0] + '\n'
                 if main_line[1]:
-                    trans_file.write(main_line[1] + '\n')
-                    trans_file.flush()
+                    trans_content += main_line[1] + '\n'
 
                 if bg_line:
-                    lyric_file.write(bg_line[0] + '\n')
-                    lyric_file.flush()
+                    lyric_content += bg_line[0] + '\n'
                     if bg_line[1]:
-                        trans_file.write(bg_line[1] + '\n')
-                        trans_file.flush()
-                    count += 1
+                        trans_content += bg_line[1] + '\n'
+
+            # 如果无翻译内容则返回 None
+            trans_content = trans_content.strip() if TTMLLine.have_ts else None
+            lyric_content = lyric_content.strip()
+
+            return True, lyric_content, trans_content
 
         else:
             logger.exception("错误: 找不到<body>元素")
+            return False, None, None
 
     except Exception as e:
-        logger.exception(f"无法解析TTML文件: {input_path}")
+        logger.exception(f"解析 TTML 内容失败: {str(e)}")
         return False, None, None
-            
-    return True, lyric_path, trans_path
 
 def process_issue():
     """处理GitHub Issue"""
