@@ -230,17 +230,11 @@ def process_issue():
         comment.append("```")
 
         # 如果有翻译，添加LRC文件
-        if result['has_translations']:
+        if state:
             comment.append("\n### 翻译文件内容")
             comment.append("```")
             comment.append(trans_path)
             comment.append("```")
-
-        # 添加处理信息
-        if result['revisions']['xmlns_removed']:
-            comment.append(f"\n处理文件时移除了 {result['revisions']['xmlns_matches']} 处xmlns=\"\"声明")
-        if result['revisions']['brackets_fixed']:
-            comment.append(f"处理文件时移除了 {result['revisions']['bracket_matches']} 处多余的括号")
 
         # 发布评论
         issue.create_comment('\n'.join(comment))
