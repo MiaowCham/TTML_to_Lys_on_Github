@@ -5,6 +5,9 @@ import sys
 import xml
 from typing import Iterator, TextIO
 from xml.dom.minidom import Document, Element
+from datetime import date, datetime
+import base64
+from github import Github
 
 from pip import main as pip_main
 
