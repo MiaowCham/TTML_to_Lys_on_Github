@@ -1,12 +1,16 @@
 import os
-from re import compile, Pattern, Match
+import re
 import string
-import xml
-from typing import Iterator, AnyStr
-from xml.dom.minidom import Document, Element
+import logging
+import sys
+import xml.etree.ElementTree as ET
+from datetime import date, datetime
+import base64
 from github import Github
+
 from pip import main as pip_main
 
+# install loguru and import
 try:
     import loguru
 except ImportError:
@@ -16,183 +20,225 @@ except ImportError:
 finally:
     from loguru import logger
 
-from datetime import datetime
+namespaces = {
+    'tt': 'http://www.w3.org/ns/ttml',
+    'ttm': 'http://www.w3.org/ns/ttml#metadata',
+    'amll': 'http://www.example.com/ns/amll',
+    'itunes': 'http://music.apple.com/lyric-ttml-internal'
+}
 
-# 日志文件夹路径
-log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log')
+# 设置日志
+logger.add(sys.stderr, level='INFO')
 
-# 读取 log.set 文件并检查是否启用日志
-log_set_file = os.path.join(log_dir, 'log.set')
+def preprocess_ttml(content):
+    """预处理TTML内容，移除xmlns=""声明"""
+    pattern = re.compile(r'\s+xmlns=""')
+    modified = False
+    matches = pattern.findall(content)
+    if matches:
+        modified = True
+        content = pattern.sub('', content)
+        logger.info(f"发现并移除了 {len(matches)} 处xmlns=\"\"声明")
+    return content, modified, matches
 
-def is_logging_enabled():
-    """检查 log.set 文件中是否有 'log_on:true'（不区分大小写）"""
-    if os.path.exists(log_set_file):
-        with open(log_set_file, 'r') as f:
-            for line in f:
-                # 判断是否包含 'log_on:true'（不区分大小写）
-                if 'log_on:true' in line.strip().lower():
-                    return True
-    return False
+def preprocess_ttml_1(content):
+    """预处理TTML内容，移除过多括号"""
+    pattern = re.compile(r'([()])1+')
+    modified = False
+    matches = pattern.findall(content)
+    if matches:
+        modified = True
+        content = pattern.sub(r'\1', content)
+        logger.info(f"发现并移除了 {len(matches)} 处连续括号")
+    return content, modified, matches
 
-if is_logging_enabled():
-    print(f"已启用日志记录，输出目录为 软件目录/log")
-    logger.add(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log',f"{datetime.now().strftime('%Y-%m-%d %H.%M.%S')}.log"),level='DEBUG')
+def parse_time(time_str):
+    """将时间字符串转换为毫秒"""
+    try:
+        parts = time_str.replace(',', '.').split(':')
+        if len(parts) == 3:  # hh:mm:ss.ms
+            h, m, rest = parts
+            s, ms = rest.split('.') if '.' in rest else (rest, 0)
+        elif len(parts) == 2:  # mm:ss.ms
+            m, rest = parts
+            h = 0
+            s, ms = rest.split('.') if '.' in rest else (rest, 0)
+        else:  # ss.ms
+            h, m = 0, 0
+            s, ms = parts[0].split('.') if '.' in parts[0] else (parts[0], 0)
 
-class TTMLTime:
-    __pattern: Pattern = compile(r'\d+')
+        return (int(h) * 3600000 + int(m) * 60000 + int(s) * 1000 +
+                int(str(ms).ljust(3, '0')[:3]))
+    except Exception as e:
+        logger.error(f"时间解析错误: {time_str} - {str(e)}")
+        return 0
 
-    def __init__(self, centi: str = ''):
-        if centi == '': return
-        # 使用 finditer 获取匹配的迭代器
-        matches: Iterator[Match[str]] = TTMLTime.__pattern.finditer(centi)
-        # 获取下一个匹配
-        iterator: Iterator[Match[str]] = iter(matches)  # 将匹配对象转换为迭代器
+def format_lrc_time(millis):
+    """将毫秒转换为LRC时间格式 (mm:ss.xx)"""
+    millis = max(0, millis)
+    m = millis // 60000
+    s = (millis % 60000) // 1000
+    ms = millis % 1000
+    return f"{m:02d}:{s:02d}.{ms:03d}"
 
-        self.__minute:int = int(next(iterator).group())
-        self.__second:int = int(next(iterator).group())
-        self.__micros:int = int(next(iterator).group())
+def calculate_property(alignment, background):
+    """计算LYS属性值"""
+    if background:
+        return {None: 6, 'left': 7, 'right': 8}.get(alignment, 6)
+    else:
+        return {None: 3, 'left': 4, 'right': 5}.get(alignment, 3)
 
-    def __str__(self) -> str:
-        return f'{self.__minute:02}:{self.__second:02}.{self.__micros:03}'
+def process_segment(spans, alignment, is_background):
+    """处理歌词段生成LYS行（最终空格修复版）"""
+    parts = []
+    pending_whitespace = ''
 
-    def __int__(self) -> int:
-        return (self.__minute * 60 + self.__second) * 1000 + self.__micros
+    for span in spans:
+        try:
+            begin = span.get('begin')
+            end = span.get('end')
+            if not begin or not end:
+                continue
 
-    def __ge__(self, other) -> bool:
-        return (self.__minute, self.__second, self.__micros) >= (other.__minute, other.__second, other.__micros)
+            start = parse_time(begin)
+            duration = parse_time(end) - start
+            if duration <= 0:
+                continue
 
-    def __ne__(self, other) -> bool:
-        return (self.__minute, self.__second, self.__micros) != (other.__minute, other.__second, other.__micros)
+            full_text = pending_whitespace + (span.text or '')
+            clean_text = full_text.rstrip(' ')
+            trailing_spaces = len(full_text) - len(clean_text)
 
-    def __sub__(self, other) -> int:
-        return abs(int(self) - int(other))
+            tail = span.tail or ''
+            tail_clean = tail.lstrip(' ')
+            leading_spaces = len(tail) - len(tail_clean)
 
-class TTMLSyl:
-    def __init__(self, element: Element):
-        self.__element: Element = element
+            word = clean_text
+            if trailing_spaces > 0 or leading_spaces > 0:
+                word += ' ' * (trailing_spaces + leading_spaces)
 
-        self.__begin: TTMLTime = TTMLTime(element.getAttribute("begin"))
-        self.__end: TTMLTime = TTMLTime(element.getAttribute("end"))
-        self.text: str = element.childNodes[0].nodeValue
+            if word:
+                parts.append(f"{word}({start},{duration})")
 
-    def __str__(self) -> str:
-        return f'{self.text}({int(self.__begin)},{self.__end - self.__begin})'
+            pending_whitespace = tail_clean if not tail_clean.strip() else ''
 
-    def get_begin(self) -> TTMLTime:
-        return self.__begin
+        except Exception as e:
+            logger.warning(f"处理span失败: {str(e)}")
 
-class TTMLLine:
-    have_ts: bool = False
-    have_duet: bool = False
-    have_bg: int = 0
+    if pending_whitespace.strip():
+        parts.append(f"{pending_whitespace}(0,0)")
 
-    __before: Pattern[AnyStr] = compile(r'^\({2,}')
-    __after: Pattern[AnyStr] = compile(r'\){2,}$')
+    if not parts:
+        return None
 
-    def __init__(self, element: Element, is_bg: bool = False):
-        self.__element: Element = element
-        self.__orig_line: list[TTMLSyl|str] = []
-        self.__ts_line: str|None = None
-        self.__bg_line: TTMLLine|None = None
-        self.__is_bg: bool = is_bg
+    prop = calculate_property(alignment, is_background)
+    return f"[{prop}]" + "".join(parts)
 
-        # 获取传入元素的 agent 属性
-        agent: string = element.getAttribute("ttm:agent")
-        self.__is_duet:bool = bool(agent and agent != 'v1')
-
-        # 获取 <p> 元素的所有子节点，包括文本节点
-        child_elements:list[Element] = element.childNodes  # iter() 会返回所有子元素和文本节点
-
-        # 遍历所有子元素
-        for child in child_elements:
-            if child.nodeType == 3 and child.nodeValue:  # 如果是文本节点（例如空格或换行）
-                if len(self.__orig_line) > 0 and len(child.nodeValue) < 2:
-                    self.__orig_line[-1].text += child.nodeValue
-                else:
-                    self.__orig_line.append(child.nodeValue)
-            else:
-                # 获取 <span> 中的属性
-                role:str = child.getAttribute("ttm:role")
-
-                # 没有role代表是一个syl
-                if role == "":
-                    if child.childNodes[0].nodeValue:
-                        self.__orig_line.append(TTMLSyl(child))
-
-                elif role == "x-bg":
-                    # 和声行
-                    self.__bg_line = TTMLLine(child, True)
-                elif role == "x-translation":
-                    # 翻译行
-                    TTMLLine.have_ts = True
-                    self.__ts_line = f'{child.childNodes[0].data}'
-
-        self.__begin = self.__orig_line[0].get_begin()
-
-        if is_bg:
-            if TTMLLine.__before.search(self.__orig_line[0].text):
-                self.__orig_line[0].text = TTMLLine.__before.sub(self.__orig_line[0].text, '(')
-                TTMLLine.have_bg += 1
-            if TTMLLine.__after.search(self.__orig_line[-1].text):
-                self.__orig_line[-1].text = TTMLLine.__after.sub(self.__orig_line[-1].text, ')')
-                TTMLLine.have_bg += 1
-
-    def __role(self) -> int:
-        return ((int(TTMLLine.have_bg != 0) + int(self.__is_bg)) * 3
-                + int(TTMLLine.have_duet) + int(self.__is_duet))
-
-    def __raw(self) -> tuple[str, str|None]:
-        return (f'[{self.__role()}]'+''.join([str(v) for v in self.__orig_line]),
-                f'[{self.__begin}]{self.__ts_line}' if self.__ts_line else None)
-
-    def to_str(self) -> tuple[tuple[str, str|None],tuple[str, str|None]|None]:
-        return self.__raw(), (self.__bg_line.__raw() if self.__bg_line else None)
+def process_translations(p_element):
+    """处理翻译内容"""
+    translations = []
+    for elem in p_element.iter():
+        if elem.tag == f'{{{namespaces["tt"]}}}span':
+            role = elem.get(f'{{{namespaces["ttm"]}}}role')
+            if role == 'x-translation':
+                text = (elem.text or '').strip()
+                if text:
+                    translations.append(text)
+    return ' '.join(translations)
 
 def ttml_to_lys(ttml_content):
     """主转换函数"""
-    TTMLLine.have_duet = False
-    TTMLLine.have_bg = 0
-    TTMLLine.have_ts = False
-    lines: list[TTMLLine] = []
-
     try:
-        # 解析XML文件
-        dom = xml.dom.minidom.parseString(ttml_content)  # 假设文件名是 'books.xml'
-        tt: Document = dom.documentElement  # 获取根元素
+        # 预处理移除xmlns=""声明
+        pro_processed_content, modified, matches = preprocess_ttml(ttml_content)
+        revise_1 = modified
 
-        # 获取tt中的body/head元素
-        body = tt.getElementsByTagName('body')[0]
-        head = tt.getElementsByTagName('head')[0]
+        # 预处理移除多余括号
+        processed_content, modified_1, matches1 = preprocess_ttml_1(pro_processed_content)
+        revise_2 = modified_1
 
-        if body and head:
-            # 获取body/head中的<div>/<metadata>子元素
-            div = body.getElementsByTagName('div')[0]
-            metadata = head.getElementsByTagName('metadata')[0]
-
-            # 获取div中的所有<p>子元素
-            p_elements = div.getElementsByTagName('p')
-            meta_elements = metadata.getElementsByTagName('amll:meta')
-
-            # 检查是否有对唱
-            for meta in meta_elements:
-                if meta.getAttribute('xml:id') != 'v1':
-                    TTMLLine.have_duet = True
-
-            # 遍历每个<p>元素
-            for p in p_elements:
-                lines.append(TTMLLine(p))
-
-                # 打印行
-                logger.info(f"TTML第{p_elements.index(p)}行内容：{lines[-1].to_str()[0][0]}")
-
-        else:
-            logger.exception("错误: 找不到<body>元素")
+        # 解析XML
+        root = ET.fromstring(processed_content)
 
     except Exception as e:
-        logger.exception(f"无法解析")
-        return False, None
-            
-    return True, [line.to_str() for line in lines]
+        logger.exception("无法解析TTML内容")
+        return None
+
+    lys_lines = []
+    lrc_entries = []
+    has_translations = False
+
+    # 处理歌词行
+    try:
+        for p in root.findall('.//tt:p', namespaces):
+            try:
+                # 获取基础信息
+                alignment = None
+                agent = p.get(f'{{{namespaces["ttm"]}}}agent')
+                if agent == 'v1':
+                    alignment = 'left'
+                elif agent == 'v2':
+                    alignment = 'right'
+
+                # 处理翻译
+                translation = process_translations(p)
+                if translation:
+                    has_translations = True
+
+                # 获取时间信息
+                p_begin = p.get('begin')
+                lrc_time = format_lrc_time(parse_time(p_begin))
+                lrc_entries.append((lrc_time, translation))
+
+                # 分离主歌词和背景人声
+                main_spans = []
+                bg_spans = []
+
+                def analyse_line(line: ET.Element, is_bg: bool):
+                    for word in line:
+                        word_role = word.get(f'{{{namespaces["ttm"]}}}role')
+                        if word_role == 'x-bg':
+                            analyse_line(word, True)
+                        else:
+                            if is_bg:
+                                bg_spans.append(word)
+                            else:
+                                main_spans.append(word)
+
+                analyse_line(p, False)
+
+                # 处理主歌词行
+                if main_spans:
+                    main_line = process_segment(main_spans, alignment, False)
+                    if main_line:
+                        lys_lines.append(main_line)
+
+                # 处理背景人声行
+                if bg_spans:
+                    bg_line = process_segment(bg_spans, alignment, True)
+                    if bg_line:
+                        lys_lines.append(bg_line)
+
+            except Exception as e:
+                logger.exception("处理歌词行失败")
+
+    except Exception as e:
+        logger.exception("解析歌词失败")
+        return None
+
+    result = {
+        'lys_content': '\n'.join(lys_lines),
+        'has_translations': has_translations,
+        'lrc_content': '\n'.join([f"[{time}]{text}" for time, text in lrc_entries]) if has_translations else None,
+        'revisions': {
+            'xmlns_removed': revise_1,
+            'brackets_fixed': revise_2,
+            'xmlns_matches': len(matches) if matches else 0,
+            'bracket_matches': len(matches1) if matches1 else 0
+        }
+    }
+
+    return result
 
 def process_issue():
     """处理GitHub Issue"""
@@ -214,23 +260,10 @@ def process_issue():
             return
 
         # 处理TTML内容
-        result, lines = ttml_to_lys(body)
+        result = ttml_to_lys(body)
         if not result:
             issue.create_comment("❌ TTML处理失败，请检查内容格式是否正确")
             return
-
-        lyric_line: list[str] = []
-        trans_line: list[str] = []
-
-        for main_line, bg_line in lines:
-            orig, ts = main_line
-            lyric_line.append(orig)
-            if TTMLLine.have_ts: trans_line.append(ts or '')
-            if bg_line:
-                bg_orig, bg_ts = bg_line
-                lyric_line.append(bg_orig)
-                if TTMLLine.have_ts: trans_line.append(bg_ts or '')
-
 
         # 准备评论内容
         comment = ["✅ 转换完成！"]
@@ -238,19 +271,21 @@ def process_issue():
         # 添加LYS文件
         comment.append("\n### LYS文件内容")
         comment.append("```")
-        comment.append('\n'.join(lyric_line))
+        comment.append(result['lys_content'])
         comment.append("```")
 
         # 如果有翻译，添加LRC文件
-        if TTMLLine.have_ts:
+        if result['has_translations']:
             comment.append("\n### 翻译文件内容")
             comment.append("```")
-            comment.append('\n'.join(trans_line))
+            comment.append(result['lrc_content'])
             comment.append("```")
 
         # 添加处理信息
+        if result['revisions']['xmlns_removed']:
+            comment.append(f"\n处理文件时移除了 {result['revisions']['xmlns_matches']} 处xmlns=\"\"声明")
         if result['revisions']['brackets_fixed']:
-            comment.append(f"处理文件时移除了 {TTMLLine.have_bg} 处多余的括号")
+            comment.append(f"处理文件时移除了 {result['revisions']['bracket_matches']} 处多余的括号")
 
         # 发布评论
         issue.create_comment('\n'.join(comment))
@@ -262,4 +297,3 @@ def process_issue():
 
 if __name__ == '__main__':
     process_issue()
-
