@@ -6,7 +6,7 @@ from typing import Iterator, AnyStr
 from xml.dom.minicompat import NodeList
 from xml.dom.minidom import Document, Element
 from github import Github
-from pip import main as pip_main
+from pip import主干as pip_main
 
 try:
     import loguru
@@ -255,8 +255,8 @@ def process_issue():
             comment.append("```")
 
         # 添加处理信息
-        if result['revisions']['brackets_fixed']:
-            comment.append(f"处理文件时移除了 {TTMLLine.have_bg} 处多余的括号")
+        if TTMLLine.have_pair:
+            comment.append(f"处理文件时移除了 {TTMLLine.have_pair} 处多余的括号")
 
         # 发布评论
         issue.create_comment('\n'.join(comment))
