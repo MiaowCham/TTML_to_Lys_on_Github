@@ -6,7 +6,7 @@ from typing import Iterator, AnyStr
 from xml.dom.minicompat import NodeList
 from xml.dom.minidom import Document, Element
 from github import Github
-from pip import main as pip_main
+from pip import主干as pip_main
 
 try:
     import loguru
@@ -18,26 +18,6 @@ finally:
     from loguru import logger
 
 from datetime import datetime
-
-# 日志文件夹路径
-log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log')
-
-# 读取 log.set 文件并检查是否启用日志
-log_set_file = os.path.join(log_dir, 'log.set')
-
-def is_logging_enabled():
-    """检查 log.set 文件中是否有 'log_on:true'（不区分大小写）"""
-    if os.path.exists(log_set_file):
-        with open(log_set_file, 'r') as f:
-            for line in f:
-                # 判断是否包含 'log_on:true'（不区分大小写）
-                if 'log_on:true' in line.strip().lower():
-                    return True
-    return False
-
-if is_logging_enabled():
-    print(f"已启用日志记录，输出目录为 软件目录/log")
-    logger.add(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log',f"{datetime.now().strftime('%Y-%m-%d %H.%M.%S')}.log"),level='DEBUG')
 
 class TTMLTime:
     __pattern: Pattern = compile(r'\d+')
