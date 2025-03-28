@@ -6,7 +6,7 @@ from typing import Iterator, AnyStr
 from xml.dom.minicompat import NodeList
 from xml.dom.minidom import Document, Element
 from github import Github
-from pip import主干as pip_main
+#from pip import主干as pip_main
 
 try:
     import loguru
