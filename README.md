@@ -4,6 +4,9 @@
 
 ### > [点击这里使用本工具](https://github.com/HKLHaoBin/ttml_to_lys/issues/new/choose) <
 
+>[!Warning]
+>本工具专为 AMLL TTML Tool 输出的 TTML 文件设计，不能保证正常转换其他来源的 TTML 文件！
+
 ### **使用方法：**
 1. 新建`issue 议题`，选择`TTML歌词转Lys`模板
 3. 将需要转换的 **ttml** 格式的歌词复制到`Description 描述`中
@@ -14,9 +17,6 @@
 - 尽量将标题改为文件名或歌曲名，以便区分
 - issue 的`Label 标签`必需是`ttml_to_lys`才会触发转换
 - 转换没有对唱的歌词，歌词属性可能会出现 `[0]` `[3]` `[6]`，属于正常情况
----
-**已知问题：**
-对唱歌词的背景人声对唱属性错误，始终为 `[7]`。预计下个版本修复
 
 ### 功能特点
  **GitHub 集成**：
